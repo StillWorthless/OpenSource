@@ -1,3 +1,4 @@
+#fields	indicator	indicator_type	meta.source	meta.do_notice
 yimg.1stdayofwinter.com	Intel::DOMAIN	APT	T
 yimg.1208nw199thpl.info	Intel::DOMAIN	APT	T
 yieidmanager.com	Intel::DOMAIN	APT	T
@@ -104,6 +105,52 @@ cdn.jameswoodwardmusic.com	Intel::DOMAIN	APT	T
 buhenge.com	Intel::DOMAIN	APT	T
 amxil.opmuert.org	Intel::DOMAIN	APT	T
 ellismikepage.info	Intel::DOMAIN	APT	T
+art-control.link	Intel::DOMAIN	JOR HD	T
+field-control.biz	Intel::DOMAIN	JOR HD	T
+second-control.info	Intel::DOMAIN	JOR HD	T
+byterials.com	Intel::DOMAIN	JOR HD	T
+field-control.info	Intel::DOMAIN	JOR HD	T
+second-control.link	Intel::DOMAIN	JOR HD	T
+byterine.info	Intel::DOMAIN	JOR HD	T
+field-control.link	Intel::DOMAIN	JOR HD	T
+seconday.info	Intel::DOMAIN	JOR HD	T
+byteriod.com	Intel::DOMAIN	JOR HD	T
+finald.info	Intel::DOMAIN	JOR HD	T
+secondency.info Intel::DOMAIN	JOR HD	T
+cachedulla.com	Intel::DOMAIN	JOR HD	T
+membero.info	Intel::DOMAIN	JOR HD	T
+secondit.info	Intel::DOMAIN	JOR HD	T
+categic.com	Intel::DOMAIN	JOR HD	T
+potartcontrol.link	Intel::DOMAIN	JOR HD	T
+secondura.info	Intel::DOMAIN	JOR HD	T
+cathogen.com	Intel::DOMAIN	JOR HD	T
+queen-ring.biz	Intel::DOMAIN	JOR HD	T
+validines.info	Intel::DOMAIN	JOR HD	T
+catholicy.info	Intel::DOMAIN	JOR HD	T
+queen-ring.info Intel::DOMAIN	JOR HD	T
+validol.info	Intel::DOMAIN	JOR HD	T
+cathony.com	Intel::DOMAIN	JOR HD	T
+queen-ring.link Intel::DOMAIN	JOR HD	T
+valuelest.info	Intel::DOMAIN	JOR HD	T
+center-ring.link	Intel::DOMAIN	JOR HD	T
+second-contract.biz	Intel::DOMAIN	JOR HD	T
+valuelete.info	Intel::DOMAIN	JOR HD	T
+culturedse.info Intel::DOMAIN	JOR HD	T
+second-contract.info	Intel::DOMAIN	JOR HD	T
+valueste.info	Intel::DOMAIN	JOR HD	T
+custome.info	Intel::DOMAIN	JOR HD	T
+second-contract.link	Intel::DOMAIN	JOR HD	T
+center-ring.info	Intel::DOMAIN	JOR HD	T
+singlestringsetter.link Intel::DOMAIN	JOR HD	T
+first-usapro.info	Intel::DOMAIN	JOR HD	T
+ae18cb631988a3c6c59dca496a5a75d5	Intel::FILE_HASH	JOR HD	T
+4925ecce8c68a497aad2f9c1d971c9d8	Intel::FILE_HASH	JOR HD	T
+4c5cc35c4d611c35c74ae45c33ecba6e	Intel::FILE_HASH	JOR HD	T
+70d61a487b31b295b86a792f37e3bf01	Intel::FILE_HASH	JOR HD	T
+d1937fd10ad0e76aec047a769e3ff992	Intel::FILE_HASH	JOR HD	T
+46db13c47fff10e5c94f118f36131fbe	Intel::FILE_HASH	JOR HD	T
+0d193f4eb3ecd2178c093e45699fbc1b	Intel::FILE_HASH	JOR HD	T
+e3d624f480faa3667c235df443c3c1c8	Intel::FILE_HASH	JOR HD	T
 ff97bc797ed27b5e21e4e4a6e7443219	Intel::FILE_HASH	APT	T
 ff00682b0b8c8d13b797d722d9048ea2	Intel::FILE_HASH	APT	T
 fe211c7a081c1dac46e3935f7c614549	Intel::FILE_HASH	APT	T
@@ -411,6 +458,10 @@ a02a0e8dea14282a51384ef7f48f515c	Intel::FILE_HASH	APT	T
 0187be3ccf42c143ab96e7bbf2efbf2f	Intel::FILE_HASH	APT	T
 010ca5e1de980f5f45f9d82027e1606c	Intel::FILE_HASH	APT	T
 002e27938c9390a942cf4b4c319f1768	Intel::FILE_HASH	APT	T
+198.238.57.12	Intel::ADDR	JOR HD	T
+198.93.170.219	Intel::ADDR	JOR HD	T
+52.27.128.62	Intel::ADDR	JOR HD	T
+52.27.128.56	Intel::ADDR	JOR HD	T
 69.80.72.165	Intel::ADDR	APT	T
 66.55.129.199	Intel::ADDR	APT	T
 54.169.89.240	Intel::ADDR	APT	T
