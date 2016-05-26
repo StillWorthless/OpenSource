@@ -591,11 +591,25 @@ Function InjectMe
                     $CopyLoc = "\\$Computer\c$"
                     $HSLocation = "\\$RunComputer\c$\share\HairyShaman"
                     $ZHLocation = "\\$RunComputer\c$\share\ZombieHunter"
+                    $WifiCommand = "netsh.exe wlan show profiles name=’Profile Name’ key=clear >> C:\folder\Wifi.txt"
+                    $sigcmd = "C:\folder\$Computer\sigcheck.exe -accepteula -u -c -s -e c:\windows >> C:\folder\$Computer\sigcheck.txt"
+                    $autocmd = "C:\folder\$Computer\autorunsc.exe -accepteula -a * -c -h -s -t * >> C:\folder\$Computer\autoruns.txt"
+                    $tcpcmd = "C:\folder\$Computer\tcpvcon.exe -accepteula -a -c >> C:\folder\$Computer\tcpview-netstat.txt"
+                    $sig = "\\$RunComputer\c$\share"
+                    $auto = "\\$RunComputer\c$\share"
+                    $tcp = "\\$RunComputer\c$\share"
+                    $sigFile = "sigcheck.exe"
+                    $autoFile = "autorunsc.exe"
+                    $tcpFile = "tcpvcon.exe"
 
                     If(!(Test-Path $CopyLoc\folder\$Computer)){ New-Item -type Directory -force $CopyLoc\folder\$Computer | Out-Null }
                     # copy_file Runs System           CopyTo           CopyFrom 
                     . Copy_file 0 $Computer $CopyLoc\folder\$Computer $HSLocation $HSFile "HairyShaman" $Script:HS_Bad_Log
                     . Copy_file 0 $Computer $CopyLoc\folder\$Computer $ZHLocation $ZHFile "ZombieHunter" $Script:ZH_Bad_Log
+                    . Copy_file 0 $Computer $CopyLoc\folder\$Computer $sig $sigFile "SigCheck" 
+                    . Copy_file 0 $Computer $CopyLoc\folder\$Computer $auto $autoFile "Autoruns"
+                    . Copy_file 0 $Computer $CopyLoc\folder\$Computer $tcp $tcpFile "TCPView"
+
 
                     If(!(Get-Process -ComputerName $Computer -Name ZombieHunter*))
                     {
@@ -622,6 +636,7 @@ Function InjectMe
                     Else{ 
                         Write-Host "Already running ZombieHunter" 
                         echo "$Computer already running ZombieHunter" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
 
                     If(!(Get-Process -ComputerName $Computer -Name HairyShaman*))
                     {
@@ -648,6 +663,108 @@ Function InjectMe
                     Else{ 
                         Write-Host "Already running HairyShaman" 
                         echo "$Computer already running HairyShaman" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
+                    
+                    $process = [WMICLASS]"\\$Computer\ROOT\CIMV2:win32_process"  
+                    $RV = $process.Create($WifiCommand) | Select ProcessId,ReturnValue
+                    If($RV.ReturnValue -eq 0) { 
+                        Write-Host "Started WifiCheck on $Computer with a PID of $($RV.ProcessID)" 
+                        echo "Started WifiCheck on $Computer with a PID of $($RV.ProcessID)" | Out-File $Script:Log_File -Append }
+                    else
+                    {                             
+                        switch ($RV.returnvalue) {
+                            0 { $value = "Successful Completion" | Out-File $Script:Log_File -Append } 
+                            2 { $value = "Access Denied" | Out-File $Script:Log_File -Append } 
+                            8 { $value = "Unknown Failure" | Out-File $Script:Log_File -Append }
+                            9 { $value = "Path Not Found" | Out-File $Script:Log_File -Append }
+                            21 { $value = "Invalid Parameter" | Out-File $Script:Log_File -Append }
+                            default { $value = "$($rtn.ReturnValue) is Not Listed."  | Out-File $Script:Log_File -Append }
+                        }
+                        Write-Host "Attempted WifiCheck on $Computer but had issue - $($Value)"
+                        echo "Attempted WifiCheck on $Computer but had issue - $($Value)" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
+
+
+                    If(!(Get-Process -ComputerName $Computer -Name sigcheck*))
+                    {
+                        $process = [WMICLASS]"\\$Computer\ROOT\CIMV2:win32_process"  
+                        $RV = $process.Create($sigcmd) | Select ProcessId,ReturnValue
+                    
+                        If($RV.ReturnValue -eq 0) { 
+                            Write-Host "Started sigcheck on $Computer with a PID of $($RV.ProcessID)" 
+                            echo "Started sigcheck on $Computer with a PID of $($RV.ProcessID)" | Out-File $Script:Log_File -Append }
+                        else{ 
+                            switch ($RV.returnvalue) {
+                                0 { $value = "Successful Completion" | Out-File $Script:Log_File -Append } 
+                                2 { $value = "Access Denied" | Out-File $Script:Log_File -Append } 
+                                8 { $value = "Unknown Failure" | Out-File $Script:Log_File -Append }
+                                9 { $value = "Path Not Found" | Out-File $Script:Log_File -Append }
+                                21 { $value = "Invalid Parameter" | Out-File $Script:Log_File -Append }
+                                default { $value = "$($rtn.ReturnValue) is Not Listed."  | Out-File $Script:Log_File -Append }
+                            }
+                            Write-Host "Attempted sigcheck on $Computer but had issue - $($value)"
+                            echo "Attempted sigcheck on $Computer but had issue - $($value)" | Out-File $Script:Log_File -Append }
+
+                    }
+                    Else{ 
+                        Write-Host "Already running sigcheck" 
+                        echo "$Computer already running sigcheck" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
+
+
+                    If(!(Get-Process -ComputerName $Computer -Name autorunsc*))
+                    {
+                        $process = [WMICLASS]"\\$Computer\ROOT\CIMV2:win32_process"  
+                        $RV = $process.Create($autocmd) | Select ProcessId,ReturnValue
+                    
+                        If($RV.ReturnValue -eq 0) { 
+                            Write-Host "Started autorunsc on $Computer with a PID of $($RV.ProcessID)" 
+                            echo "Started autorunsc on $Computer with a PID of $($RV.ProcessID)" | Out-File $Script:Log_File -Append }
+                        else{ 
+                            switch ($RV.returnvalue) {
+                                0 { $value = "Successful Completion" | Out-File $Script:Log_File -Append } 
+                                2 { $value = "Access Denied" | Out-File $Script:Log_File -Append } 
+                                8 { $value = "Unknown Failure" | Out-File $Script:Log_File -Append }
+                                9 { $value = "Path Not Found" | Out-File $Script:Log_File -Append }
+                                21 { $value = "Invalid Parameter" | Out-File $Script:Log_File -Append }
+                                default { $value = "$($rtn.ReturnValue) is Not Listed."  | Out-File $Script:Log_File -Append }
+                            }
+                            Write-Host "Attempted autorunsc on $Computer but had issue - $($value)" 
+                            echo "Attempted autorunsc on $Computer but had issue - $($value)" | Out-File $Script:Log_File -Append }
+
+                    }
+                    Else{ 
+                        Write-Host "Already running autorunsc" 
+                        echo "$Computer already running autorunsc" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
+
+
+                    If(!(Get-Process -ComputerName $Computer -Name tcpvcon*))
+                    {
+                        $process = [WMICLASS]"\\$Computer\ROOT\CIMV2:win32_process"  
+                        $RV = $process.Create($tcpcmd) | Select ProcessId,ReturnValue
+                    
+                        If($RV.ReturnValue -eq 0) { 
+                            Write-Host "Started tcpvcon on $Computer with a PID of $($RV.ProcessID)" 
+                            echo "Started tcpvcon on $Computer with a PID of $($RV.ProcessID)" | Out-File $Script:Log_File -Append }
+                        else{ 
+                            switch ($RV.returnvalue) {
+                                0 { $value = "Successful Completion" | Out-File $Script:Log_File -Append } 
+                                2 { $value = "Access Denied" | Out-File $Script:Log_File -Append } 
+                                8 { $value = "Unknown Failure" | Out-File $Script:Log_File -Append }
+                                9 { $value = "Path Not Found" | Out-File $Script:Log_File -Append }
+                                21 { $value = "Invalid Parameter" | Out-File $Script:Log_File -Append }
+                                default { $value = "$($rtn.ReturnValue) is Not Listed."  | Out-File $Script:Log_File -Append }
+                            }
+                            Write-Host "Attempted tcpvcon on $Computer but had issue - $($value)"
+                            echo "Attempted tcpvcon on $Computer but had issue - $($value)" | Out-File $Script:Log_File -Append }
+
+                    }
+                    Else{ 
+                        Write-Host "Already running tcpvcon" 
+                        echo "$Computer already running tcpvcon" | Out-File $Script:Log_File -Append }
+#444444444444444444444444444444444444444444444444444444
+
 
                     $Script:GoodComputers = $Script:GoodComputers + 1
                     echo $Computer | Out-File $Script:GoodComputers_Log -Append
