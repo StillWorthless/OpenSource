@@ -1,12 +1,12 @@
 ﻿<#
     .SYNOPSIS  
-        Takes an array of file names and searches a directory recursively and lists all matches in a results file. 
+        A bunch of stuff. 
 
     .DESCRIPTION  
-          
+          What are you doing Dave?
 
     .NOTES  
-        File Name      : psFileFind.ps1
+        File Name      : Hal_9000.ps1
         Version        : v.0.1  
         Author         : StillWorthless
         Email          : 
