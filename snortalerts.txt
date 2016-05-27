@@ -1,2 +1,42 @@
 alert udp any any -> any 53 (msg:"DARKBOT ALERT"; content:"najwahaifamelema"; sid:1000210; rev:1;)
 alert udp any 53 -> any any (msg:"DARKBOT ALERT"; content:"najwahaifamelema"; sid:1000211; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!v"; sid:1000212; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!rc"; sid:1000213; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!die"; sid:1000214; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!rm"; sid:1000215; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!s"; sid:1000216; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!us"; sid:1000217; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!stop"; sid:1000218; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!stats"; sid:1000219; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!logins"; sid:1000220; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!rs0"; sid:1000221; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!speed"; sid:1000222; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!m"; sid:1000223; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!j"; sid:1000224; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!p"; sid:1000225; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!dl"; sid:1000226; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!msn.set"; sid:1000227; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!msn.int"; sid:1000228; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!http.set"; sid:1000229; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!http.int"; sid:1000230; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!http.inj"; sid:1000231; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!mdns"; sid:1000232; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!vs"; sid:1000233; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!up"; sid:1000234; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!slow"; sid:1000235; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!mod"; sid:1000236; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!rs1"; sid:1000237; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!udp"; sid:1000238; rev:1;)
+alert tcp any any -> any any (msg:"DARKBOT C&C"; content:":!ssyn"; sid:1000239; rev:1;)
+
+
+
+
+
+
+
+
+
+
+
+
