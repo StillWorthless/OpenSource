@@ -1,0 +1,48 @@
+hex-Mutex
+t2f-Mutex
+f4448e25-Mutex
+Andromeda
+protected_n3utrino
+n3nmtx
+
+Kaspersky name
+Worm.Win32.Ngrbot.byu
+
+sha1 hashes
+820B3E3726026AD973EA8AD4B2FE5A9CCC710C6C
+BA2AB99250B21E24258D0CFC30AC7DA058539A71
+
+md5 hashes
+5204e283a56015e5feacac9c2bbf8a42
+50bcd59a8ff0d846a9159a8b6ed5c45f
+83047bf281940db7d669db571d0d1b20
+
+C&C commands
+:!v
+:!rc
+:!die
+:!rm
+:!s
+:!us
+:!stop
+:!stats
+:!logins
+:!rs0
+:!speed
+:!m
+:!j
+:!p
+:!dl
+:!msn.set
+:!msn.int
+:!http.set
+:!http.int
+:!http.inj
+:!mdns
+:!vs
+:!up
+:!slow
+:!mod
+:!rs1
+:!udp
+:!ssyn

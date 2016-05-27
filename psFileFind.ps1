@@ -32,7 +32,11 @@ $Script:curDate = $((Get-Date).ToString("yyyy_MMM_dd-HH.mm.ss-tt")) ##Sets the d
 # for. Format: ('name.txt', 'nextname.pdf')
 #
 #########################################################
-$Names = @('libssp-0.dll',
+$Names = @( 'facebook-profile-pic-',
+            'facebook-pic00',
+            'skype_',
+            'ozkqke.exe',
+            'libssp-0.dll',
             'ctfmon.exe',
             'libssp-0.dll',
             'QTI International Inc',
@@ -161,15 +165,40 @@ $Names = @('libssp-0.dll',
             'Projects',
             'test.exe',
             '358bd08946',
-            'PnP_No_Management')
+            'PnP_No_Management',
+            'libcurl-4.dll',
+            'pthreadgc2.dll',
+            'zlib1.dll',
+            'syshost.exe',
+            'autorun.inf',
+            'WinUpdate.exe',
+            'Zqfsfr.exe')
 
+$DirWNames = @( "\AppData\Roaming\c731200",
+                "\AppData\Roaming\ScreenSaverPro.scr",
+                "\AppData\Roaming\temp.bin",
+                "\AppData\Roaming\update\explorer.exe",
+                "\AppData\Roaming\update\cleaner.exe",
+                "\AppData\Roaming\update\update.exe",
+                "\AppData\Roaming\windowsupdate\updater.exe",
+                "\AppData\Roaming%\windowsupdate\live.exe",
+                "\AppData\Roaming\Windows Live\",
+                "\AppData\Local\Temp\Adobe\Reader_sl.exe",
+                "\AppData\Local\Temp\c731200",
+                "\AppData\Roaming\frameworkupdate7\chromeupdate.exe.",
+                "\AppData\Roaming\vfbu.exe",
+                "\AppData\Local\vfbu.exe",
+                "\AppData\LocalLow\vfbu.exe",
+                "\AppData\Local\Temp\windows\winsys.exe" )
+
+$RegLocations = @( "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Taskman\*vfbu.exe")
 
 #########################################################
 # Here is where you list the locations to search for
 # files. Format: ('\\share\folder', '')
 #
 #########################################################
-$Locations = @('\\localhost\c$')
+$Locations = @("\\$Computer\c$")
 
 
 
@@ -618,8 +647,43 @@ Function Check_Files
     param(
         [string]$source,
         [array]$array,
-        [int]$resp
+        [array]$array2
     )
+    Write-Output "Starting Darkbot check...." | Out-File $Script:Log_File -Append
+    If($array2 -ne $null)
+    {
+        $users = GCI "$source\Users"
+        ForEach($user in $users)
+        {
+            $username = $user.Name
+            ForEach ($DirWName in $array2)
+            {
+                $path = ""
+                $path = $source + "\Users\" + $username + $DirWName
+                Write-Host $path
+                
+                If(Test-Path -Path $path )
+                {
+                    If(!(Test-Path "$Script:Folder_Path\DarkBot_Report_$Script:curDate.txt"))
+                    { 
+                        New-Item -type file -force "$Script:Folder_Path\DarkBot_Report_$Script:curDate.txt" | Out-Null 
+                        $DarkBotReport = "$Script:Folder_Path\DarkBot_Report_$Script:curDate.txt"
+                    }
+                    Write-Output $path | Out-File $DarkBotReport -Append
+                    Write-Output "Darkbot found at: $path" | Out-File $Script:Log_File -Append
+
+                    Write-Host "###########################################################" -Fore Magenta
+                    Write-Host "-----------------------------------------------------------" -Fore Magenta
+                    Write-Host $path -Fore Yellow
+                    Write-Host "Username is: $userName" -Fore Yellow
+                    Write-Host "DARKBOT FOUND.... $DirWName" -Fore Yellow
+                    Write-Host "-----------------------------------------------------------" -Fore Magenta
+                    Write-Host "###########################################################" -Fore Magenta
+                }
+
+            }
+        }
+    }
     $i = 0
     $x = 0
     Get-ChildItem -Path $source -Recurse -Force | 
@@ -716,7 +780,7 @@ elseif($strResponse1 -eq 2)
         ForEach($Computer in $Script:Computers)
         {
             $loc = "\\$computer\C$"; 
-            . Check_Files $loc $Names 
+            . Check_Files $loc $Names $DirWNames
         } 
     } 
 }
@@ -733,7 +797,6 @@ elseif($strResponse1 -eq 3)
 
     echo "Got computer list... Next task..." | Out-File $Script:Log_File -Append
     echo " " | Out-File $Script:Log_File -Append
-    
     If($Locations -ne $Null)
     { 
         Write-Host "Starting psFileFind Locations....." -ForegroundColor Yellow
@@ -742,14 +805,13 @@ elseif($strResponse1 -eq 3)
             . Check_Files $Location $Names
         }
     }
-
     If($Script:Computers -ne $Null)
     {
         Write-Host "Starting psFileFind Computers....." -ForegroundColor Yellow
         ForEach($Computer in $Script:Computers)
         {
-            $loc = "\\$computer\C$"; 
-            . Check_Files $loc $Names
+                $loc = "\\$computer\C$"
+                . Check_Files $loc $Names $DirWNames
         }
     }
 }
