@@ -1,0 +1,2 @@
+alert udp any any -> any 53 (msg:"DARKBOT ALERT"; content:"najwahaifamelema"; sid:1000210; rev:1;)
+alert udp any 53 -> any any (msg:"DARKBOT ALERT"; content:"najwahaifamelema"; sid:1000211; rev:1;)
