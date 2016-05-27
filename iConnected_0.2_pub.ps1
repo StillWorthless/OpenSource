@@ -88,12 +88,16 @@ Function Get_Folder_Path
         . Get_Folder_Path }
     Else {
         $Script:Folder_Path = $Script:NamedFolder.self.path
-        write-host "iConnected will write all files to: $Script:Folder_Path"
-        If(!(Test-Path "$Script:Folder_Path\iConnected_Log_File_$Script:curDate.txt"))
+                    #$curLogFile = $Script:Folder_Path + '\Results' + $Computer + '_' + $Script:curDate + '.txt'
+        $Script:FindingsFolder = $Script:Folder_Path + "\Results"
+        If ((Test-Path $Script:FindingsFolder) -ne $True) { New-Item -type Directory -Force $Script:FindingsFolder | Out-Null}
+                        #If ((Test-Path $curLogFile) -ne $True) { New-Item -type file -force $curLogFile | Out-Null }
+        write-host "iConnected will write all files to: $Script:Folder_Path\Results"
+        If(!(Test-Path "$Script:Folder_Path\Results\iConnected_Log_File_$Script:curDate.txt"))
         {
-            New-Item -type file -force "$Script:Folder_Path\iConnected_Log_File_$Script:curDate.txt" | Out-Null
+            New-Item -type file -force "$Script:Folder_Path\Results\iConnected_Log_File_$Script:curDate.txt" | Out-Null
         }
-        $Script:Log_File = "$Script:Folder_Path\iConnected_Log_File_$Script:curDate.txt"
+        $Script:Log_File = "$Script:Folder_Path\Results\iConnected_Log_File_$Script:curDate.txt"
         # ====================================
         # Starting the Log_File
         # ====================================
@@ -273,39 +277,171 @@ Function GetBinDate ($bin)
 
 }
 # ========================================================================
-# iConnected - Logs all networks and checks last write time
+# Function Name 'System_Info' - Gathers System Information on a finding
 # ========================================================================
-Function iWirelessed
+Function System_Info ($Computer, $curLogFile)
 {
-    
+    If ($Script:System_Data -ne $True)
+    {
+        echo "System Information....." | Out-File $curLogFile -Append
+        #Collecting the IP Address of the system
+        $colItems = GWMI -cl "Win32_NetworkAdapterConfiguration" -name "root\CimV2" -Impersonation 3 -ComputerName $Computer -filter "IpEnabled = TRUE"
+        $actualIP = [System.Net.Dns]::GetHostAddresses("$computer") | foreach {if ($_.IPAddressToString -notmatch ":") {echo $_.IPAddressToString} }
+        If (($colItems -ne $Null) -and ($colItems -ne ""))
+        {                                
+            ForEach ($objItem in $colItems)
+            {
+                if ($actualIP -eq $objItem.IpAddress)
+                {
+                    $ip = $objItem.IpAddress
+                    $sub = $objItem.IPSubnet
+                    $dfgw = $objItem.DefaultIPGateway
+                    $dns = $objItem.DNSServerSearchOrder
+                    $mac = $objItem.MACAddress
+                    $dhcp = $objItem.DHCPEnabled
 
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    $htmlOutput += "<h2>System Information</h2>"
+                    $htmlOutput += "<table>"
+                    $htmlOutput += "<tr><td>IP Address----------:</td><td>$ip</td></tr>"
+                    $htmlOutput += "<tr><td>Subnet--------------:</td><td>$sub</td></tr>"
+                    $htmlOutput += "<tr><td>Default Gateway-----:</td><td>$dfgw</td></tr>"
+                    $htmlOutput += "<tr><td>DNS Servers---------:</td><td>$dns</td></tr>"
+                    $htmlOutput += "<tr><td>MAC Address---------:</td><td>$mac</td></tr>"
+                    $htmlOutput += "<tr><td>DHCP Enabled--------:</td><td>$dhcp</td></tr>"
+                    $htmlOutput += "</table>"
 
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    # Write to log file
+                    echo "IP Address is: $ip" | Out-File $curLogFile -Append
+                    echo "Subnet is: $sub" | Out-File $curLogFile -Append
+                    echo "Default Gateway is: $dfgw" | Out-File $curLogFile -Append
+                    echo "DNS Servers are: $dns" | Out-File $curLogFile -Append
+                    echo "MAC Address is: $mac" | Out-File $curLogFile -Append
+                    echo "Is DHCP Enabled: $dhcp" | Out-File $curLogFile -Append
+                    echo "=======================================================================" | Out-File $curLogFile -Append
+                    echo "=======================================================================" | Out-File $curLogFile -Append
+                    echo " " | Out-File $curLogFile -Append
+                    echo " " | Out-File $curLogFile -Append
+                }
+            }
+        }
+        else
+        {
+            #If WMI does not work report it to the log file and then get registry entries for the needed information.
+            echo "WMI did not work on $computer. Grabbing information from the registry." | Out_File $curLogFile -Append
+            #opens remote system base key (HKLM or HKU etc)
+            #$rootkey = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($Script:HKLMroot, $Computer)
+            # opens a key under root key
+            # Opens the network card key to gather all network cards
+            $NetworkCardKey = $Script:HKLMrootKey.OpenSubKey($Network_Card_Key)
+            #Gets all keys under rootkey
+            # Gets the names of all network cards
+            $NetworkCardNameKeys = $NetworkCardKey.GetSubKeyNames()
+            Foreach ($networkCard in $NetworkCardNameKeys)
+            {
+                $NetworkCard = $NetworkCardKey.OpenSubKey($networkCard)
+                # gets value of the ServiceName for that networkcard
+                $NeworkCardServiceName = $NetworkCard.GetValue("ServiceName")
+                #Define variable for the Tcpip key
+                $Service_Network_Key = $Service_Key + "\" + $NeworkCardServiceName + "\Parameters\Tcpip"
+                # Open the subkey to the interface
+                $Network_Info = $rootkey.OpenSubKey($Service_Network_Key)
+                If ($Network_Info -ne $Null) {
+                    # Get information about each tcpip parameter
+                    $ipaddresses = $Network_Info.GetValue("IPAddress")
+                    If (($ipaddresses -ne $Null) -and ($ipaddresses -ne "")) {        
+                        if ($actualIP -eq $ipaddresses) {
+                            echo "IP Address is: $ip" | Out-File $curLogFile -Append
+                            $Subnets = $Network_Info.GetValue("Subnet")
+                            If (($Subnets -ne $Null) -and ($Subnets -ne "")) { 
+                                foreach ($Sub in $Subnets) { echo "Subnet is: $sub" | Out-File $curLogFile -Append } }
+                            $DefaultGateways = $Network_Info.GetValue("DefaultGateway")
+                            If (($DefaultGateways -ne $Null) -and ($DefaultGateways -ne "")) { 
+                                foreach ($dfgw in $DefaultGateways) { echo "Default Gateway is: $dfgw" | Out-File $curLogFile -Append } }
+                            $dhcp = $Network_Info.GetValue("EnableDHCP")
+                            If ($dhcp -eq 1) { echo "Is DHCP Enabled: $True" | Out-File $curLogFile -Append }
+                            elseif ($dhcp -eq 0) { echo "Is DHCP Enabled: $False" | Out-File $curLogFile -Append } }
+
+                        $NameServerKey = $Name_Key + "\" + $NeworkCardServiceName
+                        $NameServer_Key = $rootkey.OpenSubKey($NameServerKey)
+                
+                        If ($NameServer_Key -ne $Null) {
+                            $NameServer = $NameServer_Key.GetValue("NameServer")
+                            If (($NameServer -ne "") -and ($NameServer -ne $Null)) { 
+                                foreach ($dns in $NameServer) { echo "DNS Servers are: "$dns | Out-File $curLogFile -Append } } }
+                        echo "=======================================================================" | Out-File $curLogFile -Append
+                        echo "=======================================================================" | Out-File $curLogFile -Append
+                        echo " " | Out-File $curLogFile -Append
+                        echo " " | Out-File $curLogFile -Append
+
+                        #========================================================#
+                        #Testing for new HTML Output
+                        #========================================================#
+                        $htmlOutput += "<h2>System Information</h2>"
+                        $htmlOutput += "<table>"
+                        $htmlOutput += "<tr><td>IP Address----------:</td><td>$ip</td></tr>"
+                        $htmlOutput += "<tr><td>Subnet--------------:</td><td>$sub</td></tr>"
+                        $htmlOutput += "<tr><td>Default Gateway-----:</td><td>$dfgw</td></tr>"
+                        $htmlOutput += "<tr><td>DNS Servers---------:</td><td>$dns</td></tr>"
+                        $htmlOutput += "<tr><td>MAC Address---------:</td><td>N/A</td></tr>"
+                        $htmlOutput += "<tr><td>DHCP Enabled--------:</td><td>$dhcp</td></tr>"
+                        $htmlOutput += "</table>"
+
+                        #========================================================#
+                        #Testing for new HTML Output
+                        #========================================================#
+                    }
+                }
+                $Network_Info.Close()
+                $NameServer_Key.Close()
+                $NetworkCard.Close()
+            }
+            $NetworkCardKey.Close()
+        }
+        $Script:System_Data = $True
+    }
 }
-
 
 # ========================================================================
 # iConnected - Logs all networks and checks last write time
 # ========================================================================
 Function iConnected
 { 
-    New-Item -type file -force "$Script:Folder_Path\Bad_Computers_$Script:curDate.txt" | Out-Null
-    $Script:Bad_Computers_File_Log = "$Script:Folder_Path\Bad_Computers_$Script:curDate.txt"
+    New-Item -type file -force "$Script:Folder_Path\iConnected_Bad_Computers_$Script:curDate.txt" | Out-Null
+    $Script:Bad_Computers_File_Log = "$Script:Folder_Path\iConnected_Bad_Computers_$Script:curDate.txt"
     $Script:Total_Bad_Computers = 0
     $totalTime = @()
     $htmlOutput = @()
-    #echo "Checking for users in HKU ..." | out-file $Script:Log_File -Append
-    #echo " " | out-file $Script:Log_File -Append
+    $newRun = $False
     $i = 0
+    #========================================================#
+    #Testing for new output
+    #========================================================#
+    If ($newRun -ne $True) {
+        $htmlOutput += "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>"
+        $htmlOutput += "<html xmlns='http://www.w3.org/1999/xhtml'>"
+        $htmlOutput += "<head>"
+        $htmlOutput += "<title>iConnected</title>"
+        $htmlOutput += "</head><body>"
+        $htmlOutput += "<h1>iConnected Report</h1>"
+        $htmlOutput += "<h3>Report Generated on $(Get-Date)</h3>"
+        $newRun = $True
+    }
 
+    If ($newuserInfo -ne $True) { [void]$Script:newcomputer.AppendChild($Script:newcomputerUserinfo); $newuserInfo = $True }
+    If ($AppendedUser -ne $True) { [void]$Script:newcomputerUserinfo.AppendChild($Script:newcomputerUser); $AppendedUser = $True; 
+        
+    }
     ForEach ($Computer in $Script:Computers)
     {
         
-        #$newSystem = $False
-        #$newuserInfo = $False
-        #$newsysInfo = $False
-
-        #Starts stopwatch for each computer check
-        $Time = [System.Diagnostics.Stopwatch]::StartNew()
+        $newSystem = $False
+        $newsysInfo = $False
         $ping = ""
         echo "#######################################################" | Out-File $Script:Log_File -Append
         echo "###   Now Checking.... $Computer   ###" | Out-File $Script:Log_File -Append
@@ -313,13 +449,10 @@ Function iConnected
         # ========================================================================
         # Pinging the machine. If pass check for admin share access
         # ========================================================================
-        $i++
-        $avg = ($totaltime | Measure-Object -Average).average     
+        $i++     
         $remaining = $computers.count - $i
         $total = $Computers.count
-        $s = $avg * $remaining
-        write-progress -id 1 -Activity "iConnected is running..." -Status "Time Remaining..." -SecondsRemaining $s
-        write-progress -id 2 -parentId 1 -Activity "Searching through systems..." -Status "Searched $i systems out of $total..." -PercentComplete ($i / $Script:Computers.count * 100)
+        write-progress -id 1 -Activity "Searching through systems..." -Status "Searched $i systems out of $total..." -PercentComplete ($i / $Script:Computers.count * 100)
         
         $ping = Test-Connection -CN $Computer -Count 1 -BufferSize 16 -Quiet
 
@@ -327,25 +460,25 @@ Function iConnected
         {
             echo "************************************************" | Out-File $Script:Log_File -Append
             echo "$Computer - ping was successful." | Out-File $Script:Log_File -Append
-            
             $Script:System_Data = $False 
- 
-            # pull all network cards and link each one to Intranet domains 
-            # that link to managed/unmanaged that link to profile GUIDs
-            # that link to wireless adapters or lan adapters
             $Script:root = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($Script:HKLMroot, $Computer)
             if(-not $Script:root) { Write-Error "Can't open $($Script:HKLMroot) on $computer" }
-            # key to network cards
             $KeyObj = $Script:root.OpenSubKey($Script:Network_Card_Key)
             if(-not $KeyObj) { Write-Error "Can't open $($Script:HKLMroot) on $computer" }
-			# get sub key names
             $keys = $keyobj.GetSubKeyNames()
-            #write-host $keys
-            # rotate through each key
-                echo "###########################################################" | Out-File $Write_File -Append
-                echo "-----------------------------------------------------------" | Out-File $Write_File -Append
-                echo "###########################################################" | Out-File $Write_File -Append
-                echo " " | Out-File $Write_File -Append
+            If ($Keys -ne $Null)
+            {
+                If ($newSystem -ne $True) 
+                { 
+                    $newSystem = $True
+                    $htmlOutput += "<table>"
+                    $htmlOutput += "<h1>$Computer</h1>"
+                    $htmlOutput += "</table>"
+                    . System_Info $Computer $curLogFile;
+                    $htmlOutput += "<h2>Network Devices</h2>"
+                    #$htmlOutput += "<h2>USB Information</h2>"
+                }
+            }
             foreach ($key in $keys)
             {
                 # Opens each sub key or network card reg entry
@@ -357,12 +490,15 @@ Function iConnected
                 $NetworkCardDescription = $subkeyopen.GetValue($Script:NetCard_Desc)
                 $NetworkCardServiceName = $subkeyopen.GetValue($Script:NetCard_ServName)
 
-                echo $NetworkCardDescription | Out-File $Write_File -Append
-                echo $NetworkCardServiceName | Out-File $Write_File -Append
-                echo "---------------------------------------" | Out-File $Write_File -Append
-
-                # now that we have the network card info we open and list the intranets
-                # using the networkcard servicename we can determine what network card connected to what intranet.
+                #========================================================#
+                #Testing for new HTML Output
+                #========================================================#
+                $htmlOutput += "<table>"
+                $htmlOutput += "<tr><td>Network Card Name---------:</td><td>$NetworkCardDescription</td></tr>"
+                $htmlOutput += "<tr><td>Network Card GUID Name----:</td><td>$NetworkCardServiceName</td></tr>"
+                #========================================================#
+                #Testing for new HTML Output
+                #========================================================#
                 $KeyObj2 = $Script:root.OpenSubKey($Script:IntranetKey)
                 if(-not $KeyObj2) { Write-Error "Can't open $($Script:HKLMroot) on $computer" }    
                 # get sub key names
@@ -384,115 +520,131 @@ Function iConnected
                         {
                             If ($subkeyvalue -eq $NetworkCardServiceName)
                             {
-                                echo "$IntranetName - domain was accessed using: $NetworkCardDescription" | Out-File $Write_File -Append
+                                $htmlOutput += "<tr><td>Connected to Domain-------:</td><td>$IntranetName</td></tr>"
                             }
                         }
                     }
+                    $htmlOutput += "<tr>--------------------------</tr>"
                 }
-                Echo " " | Out-File $Write_File -Append
-                Echo "###########################################################" | Out-File $Write_File -Append
-                Echo "-----------------------------------------------------------" | Out-File $Write_File -Append
-                Echo "###########################################################" | Out-File $Write_File -Append
-                echo " " | Out-File $Write_File -Append
-            }        
-                    # Take intranetname and find it in managed or unmanaged
-                    $ManUnmanKeys = $Script:root.OpenSubKey($Script:RegistryKey)
-                    if(-not $ManUnmanKeys) { Write-Error "Can't open Managed or Unmanaged keys on $computer" }
-                    $ManUnmankeyNames = $ManUnmanKeys.GetSubKeyNames()
-                    if(-not $ManUnmankeyNames) { Write-Error "Can't get Managed or Unmanaged key names on $computer" }
-                    ForEach ($ManUnmankeyName in $ManUnmankeyNames)
+                $htmlOutput += "<tr> </tr>"
+            }    
+            $htmlOutput += "</table>" 
+            $htmlOutput += "<tr>========================================================================================</tr>" 
+            
+            
+            $htmlOutput += "<h2>Networks</h2>"  
+            # Take intranetname and find it in managed or unmanaged
+            $ManUnmanKeys = $Script:root.OpenSubKey($Script:RegistryKey)
+            if(-not $ManUnmanKeys) { Write-Error "Can't open Managed or Unmanaged keys on $computer" }
+            $ManUnmankeyNames = $ManUnmanKeys.GetSubKeyNames()
+            if(-not $ManUnmankeyNames) { Write-Error "Can't get Managed or Unmanaged key names on $computer" }
+            ForEach ($ManUnmankeyName in $ManUnmankeyNames)
+            {
+                # Opens either Managed or Unmanaged
+                $manUnmanSubKeys = $ManUnmankeys.OpenSubKey($ManUnmankeyName)
+                if(-not $manUnmanSubKeys) { Write-Error "Can't get Managed or Unmanaged key on $computer" }
+                # get the subkey names under either managed or unmanaged
+                $manUnmanSubKeyNames = $manUnmanSubKeys.GetSubKeyNames()
+                if(-not $manUnmanSubKeyNames) { Write-Error "Can't get Managed or Unmanaged key names on $computer" }
+                # Get the values of the needed keys
+                ForEach ($manUnmanSubKeyName in $manUnmanSubKeyNames)
+                {
+                    $OpenManUnManKey = $manUnmanSubKeys.OpenSubKey($manUnmanSubKeyName)
+                    $ManUnManMAC = ""
+                    $ManUnManDNSSuffix = $OpenManUnManKey.GetValue($Script:DNSSuffix)
+                    $ManUnManFirstNetwork = $OpenManUnManKey.GetValue($Script:FirstNetwork)
+                    $ManUnManDescription = $OpenManUnManKey.GetValue($Script:Description)
+                    $ManUnManMAC = $($OpenManUnManKey.GetValue($Script:MAC)) | foreach { [system.BitConverter]::ToString($_)}
+                    $ManUnManProfGuid = $OpenManUnManKey.GetValue($Script:ProfGUID)
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    $htmlOutput += "<table>"
+                    $htmlOutput += "<tr>####################################################################</tr>"
+                    $htmlOutput += "<tr><td>DNS Domain Name-----------:</td><td>$ManUnManDNSSuffix</td></tr>"
+                    $htmlOutput += "<tr><td>Network Name--------------:</td><td>$ManUnManFirstNetwork</td></tr>"
+                    $htmlOutput += "<tr><td>Network Description-------:</td><td>$ManUnManDescription</td></tr>"
+                    $htmlOutput += "<tr><td>MAC Address---------------:</td><td>$($ManUnManMAC -join ("-"))</td></tr>"
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    $ProfileGuidkeys = $Script:root.OpenSubKey($Script:Profiles)
+                    if(-not $ProfileGuidkeys) { Write-Error "Can't open profile keys on $computer" }
+                    $profileOpenGuid = $ProfileGuidkeys.OpenSubKey($ManUnManProfGuid)
+                    if(-not $profileOpenGuid) { Write-Error "Can't open profile key on $computer" }
+                    $Script:ProfileDateCreated = $profileOpenGuid.GetValue($Script:DateCreated)
+                    . GetBinDate $Script:ProfileDateCreated
+                    $Script:ProfDateCreated = $Script:FullDate
+                                    
+                    $Script:ProfileDateLastConnected = $profileOpenGuid.GetValue($Script:DateLastConnected)
+                    . GetBinDate $Script:ProfileDateLastConnected
+                    $Script:ProfDateLastConnected = $Script:FullDate
+
+                    $Script:ProfName = $profileOpenGuid.GetValue($Script:ProfileName)
+                    $Script:ProfDesc = $profileOpenGuid.GetValue($Script:Description)
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    $htmlOutput += "<tr><td>FirstTimeConnected---------:</td><td>$Script:ProfDateCreated</td></tr>"
+                    $htmlOutput += "<tr><td>LastTimeConnected----------:</td><td>$Script:ProfDateLastConnected</td></tr>"
+                    $htmlOutput += "<tr><td>Profile Name---------------:</td><td>$Script:ProfName</td></tr>"
+                    $htmlOutput += "<tr><td>Profile Description--------:</td><td>$Script:ProfDesc</td></tr>"
+                    #========================================================#
+                    #Testing for new HTML Output
+                    #========================================================#
+                    
+                    ############
+                    # Checking WIFI
+                    ############
+                    $keytoCheckWifi = $manUnmanSubKeyName.Substring(32)
+                    #open wireless key
+                    $Wifi_Key = $Script:root.OpenSubKey($Script:Wireless_Key)
+                    if(-not $ProfileGuidkeys) { Write-Error "Can't open profile keys on $computer" }
+                    #get subkeys wireless
+                    $wifiKeys = $Wifi_Key.GetSubKeyNames()
+                    #match keytocheckwifi for match
+                    ForEach ($WifiKey in $WifiKeys)
                     {
-                        # Opens either Managed or Unmanaged
-                        $manUnmanSubKeys = $ManUnmankeys.OpenSubKey($ManUnmankeyName)
-                        if(-not $manUnmanSubKeys) { Write-Error "Can't get Managed or Unmanaged key on $computer" }
-                        # get the subkey names under either managed or unmanaged
-                        $manUnmanSubKeyNames = $manUnmanSubKeys.GetSubKeyNames()
-                        if(-not $manUnmanSubKeyNames) { Write-Error "Can't get Managed or Unmanaged key names on $computer" }
-                        # Get the values of the needed keys
-                        ForEach ($manUnmanSubKeyName in $manUnmanSubKeyNames)
+                        If ($keytoCheckWifi -eq $WifiKey)
                         {
-                            $OpenManUnManKey = $manUnmanSubKeys.OpenSubKey($manUnmanSubKeyName)
-                            $ManUnManMAC = ""
-                            $ManUnManDNSSuffix = $OpenManUnManKey.GetValue($Script:DNSSuffix)
-                            $ManUnManFirstNetwork = $OpenManUnManKey.GetValue($Script:FirstNetwork)
-                            $ManUnManDescription = $OpenManUnManKey.GetValue($Script:Description)
-                            $ManUnManMAC = $($OpenManUnManKey.GetValue($Script:MAC)) | foreach { [system.BitConverter]::ToString($_)}
-                            $ManUnManProfGuid = $OpenManUnManKey.GetValue($Script:ProfGUID)
-
-                            Echo "$ManUnManDNSSuffix - is the dns domain name of this network." | Out-File $Write_File -Append
-                            Echo "$ManUnManFirstNetwork - this is the network name" | Out-File $Write_File -Append
-                            Echo "$ManUnManDescription - This is the network description, typically matches the network name." | Out-File $Write_File -Append
-                            Echo "MAC Address connected to was: "$($ManUnManMAC -join ("-")) | Out-File $Write_File -Append
-                            Echo "$ManUnManProfGuid - Profile GUID. Will be used to get further information." | Out-File $Write_File -Append
-
-                            # finally take the profile guid and get the datecreated and datelastconnected - convert the dates to strings
-                            # grab description and profilename
-                            $ProfileGuidkeys = $Script:root.OpenSubKey($Script:Profiles)
-                            if(-not $ProfileGuidkeys) { Write-Error "Can't open profile keys on $computer" }
-                            #$ProfileGuidkeyNames = $ProfileGuidkeys.GetSubKeyNames()
-                            #if(-not $ProfileGuidkeyNames) { Write-Error "Can't list profile keys on $computer" }
-
-                            #ForEach ($ProfileGuidkeyName in $ProfileGuidkeyNames)
-                            #{
-                                $profileOpenGuid = $ProfileGuidkeys.OpenSubKey($ManUnManProfGuid)
-                                if(-not $profileOpenGuid) { Write-Error "Can't open profile key on $computer" }
-                                    $Script:ProfileDateCreated = $profileOpenGuid.GetValue($Script:DateCreated)
-                                    . GetBinDate $Script:ProfileDateCreated
-                                    $Script:ProfDateCreated = $Script:FullDate
-                                    
-                                    $Script:ProfileDateLastConnected = $profileOpenGuid.GetValue($Script:DateLastConnected)
-                                    . GetBinDate $Script:ProfileDateLastConnected
-                                    $Script:ProfDateLastConnected = $Script:FullDate
-
-                                    $Script:ProfName = $profileOpenGuid.GetValue($Script:ProfileName)
-                                    $Script:ProfDesc = $profileOpenGuid.GetValue($Script:Description)
-
-                                    Echo "$Script:ProfDateCreated - The date the first time connected" | Out-File $Write_File -Append
-                                    Echo "$Script:ProfDateLastConnected - The date for the last time connected to the network" | Out-File $Write_File -Append
-                                    Echo "$Script:ProfName - Another profile name, typically matches the network name" | Out-File $Write_File -Append
-                                    Echo "$Script:ProfDesc - Another profile description, typically matches the network description" | Out-File $Write_File -Append
-                                    Echo " " | Out-File $Write_File -Append
-                                    
-                                    # need to take the MAC and compare it to the OUI database
-                                    
-
-                                    $keytoCheckWifi = $manUnmanSubKeyName.Substring(32)
-                                    #open wireless key
-                                    $Wifi_Key = $Script:root.OpenSubKey($Script:Wireless_Key)
-                                    if(-not $ProfileGuidkeys) { Write-Error "Can't open profile keys on $computer" }
-                                    #get subkeys wireless
-                                    $wifiKeys = $Wifi_Key.GetSubKeyNames()
-                                    #match keytocheckwifi for match
-                                    ForEach ($WifiKey in $WifiKeys)
+                            $CurWifiKey = $Wifi_Key.OpenSubKey($WifiKey)
+                            $SSIDS = $CurWifiKey.GetValueNames()
+                            ForEach ($SSID in $SSIDS)
+                            {
+                                $curSSID = @()
+                                If ($SSID -ne "(Default)")
+                                {
+                                    $splitssid = ([regex]::matches($SSID, '.{1,2}') | %{$_.value}) -join ' '
+                                    $splitssid.Split(' ') | FOREACH {$curSSID += ( [CHAR][BYTE]([CONVERT]::toint16($_,16)))}
+                                    $ActSSID = $curSSID -join ('')
+                                    If (($ActSSID -ne "") -and ($ActSSID -ne $Null))
                                     {
-                                        If ($keytoCheckWifi -eq $WifiKey)
-                                        {
-                                            Echo "WIRELESS CONNECTION DISCOVERED" | Out-File $Write_File -Append
-                                            $CurWifiKey = $Wifi_Key.OpenSubKey($WifiKey)
-                                            $SSIDS = $CurWifiKey.GetValueNames()
-                                            ForEach ($SSID in $SSIDS)
-                                            {
-                                                $curSSID = @()
-                                                If ($SSID -ne "Default")
-                                                {
-                                                    $splitssid = ([regex]::matches($SSID, '.{1,2}') | %{$_.value}) -join ' '
-                                                    $splitssid.Split(' ') | FOREACH {$curSSID += ( [CHAR][BYTE]([CONVERT]::toint16($_,16)))}
-                                                    $ActSSID = $curSSID -join ('')
-                                                    If ($ActSSID -ne $Null,"")
-                                                    {
-                                                        Echo "The wireless network had this SSID: $ActSSID" | Out-File $Write_File -Append
-                                                    }
-                                                }
-
-                                            }
-                                        }
-
+                                        $htmlOutput += "<tr><td>SSID-----------------------:</td><td>$ActSSID</td></tr>"
                                     }
-                                    Echo "----------------------------------------------------------" | Out-File $Write_File -Append
-                                    Echo "----------------------------------------------------------" | Out-File $Write_File -Append
+                                }
+
+                            }
                         }
+
                     }
+                }
             }
+        }
+    }
+    
+    $htmlOutput += "</table>"
+    #========================================================#
+    #Testing for new output
+    #========================================================#
+    If ($htmlOutput -ne $Null)
+    {
+        $htmlOutput += "<table>"
+        $htmlOutput += "<tr>========================================================================================</tr>"
+        $htmlOutput += "</table>"
+        $htmlOutput += "</body></head>"
+        $Script:HtmlPath = $Script:Folder_Path + "\Results\Results_" + $Script:curDate + ".html"
+
+        $htmlOutput | out-file $Script:HtmlPath; ii $Script:HtmlPath
     }
 }
 # ========================================================================
