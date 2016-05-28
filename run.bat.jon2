@@ -1,0 +1,8 @@
+@ECHO OFF
+
+netsh.exe wlan show profiles name=’Profile Name’ key=clear >> C:\folder\Wifi.txt
+C:\folder\TCPView\tcpvcon.exe -accepteula -a -c >> C:\folder\TCPView\tcpview-netstat.txt
+C:\folder\Autoruns\autorunsc.exe -accepteula -a * -c -h -s -t * >> C:\folder\Autoruns\autoruns.txt
+C:\folder\SigCheck\sigcheck.exe -accepteula -u -c -s -e c:\windows >> C:\folder\SigCheck\sigcheck.txt
+
+
