@@ -1,0 +1,4 @@
+https://www.symantec.com/security_response/writeup.jsp?docid=2015-021912-5112-99&tabid=2
+
+https://www.microsoft.com/security/portal/threat/encyclopedia/Entry.aspx?Name=Worm%3AJS%2FBondat
+
