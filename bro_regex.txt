@@ -1,0 +1,6 @@
+"^(?P<date>\w{3}\s+\d{1,2}\s\d\d:\d\d:\d\d)\s(?P<server>[\w_]+)\s(?P<log>[bro_intel]):\s(?P<ts>[\d{1,10}\.d{1,6}])|(?P<uid>[.*?])|?P<id.orig_h>.*?)|(?P<id.orig_p>\d+)|(?P<id.resp_h>.*?)|(?P<id.resp_p>\d+)|(?P<indicator>.*?)|(?P<indicator_type>.*?)|.*$"
+
+
+
+
+
